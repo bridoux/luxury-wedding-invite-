@@ -1,0 +1,9 @@
+-- ⚠️  SUPERSEDED — see supabase/migrations/0001_init_wedding_schema.sql
+--
+-- The canonical, full schema (guests, rsvps, invitation_opens, admin_users,
+-- wedding_settings + RLS, triggers, and public-safe RPCs) now lives in:
+--
+--     supabase/migrations/0001_init_wedding_schema.sql
+--
+-- Apply that file instead of this one. It is kept here only so older docs that
+-- reference supabase/schema.sql don't 404.
