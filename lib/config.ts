@@ -9,6 +9,8 @@
  * ════════════════════════════════════════════════════════════════
  */
 
+import { DEFAULT_THEME } from "@/lib/theme";
+
 export const weddingConfig = {
   // ── Couple ──────────────────────────────────────────────
   couple: {
@@ -200,6 +202,9 @@ export const weddingConfig = {
     src: "/audio/theme.mp3",
     title: "Our Wedding Theme"
   },
+
+  // ── Theme (admin-editable colors; see lib/theme.ts) ─────
+  theme: DEFAULT_THEME,
 
   // ── Misc ────────────────────────────────────────────────
   meta: {

@@ -4,6 +4,7 @@ import { Marcellus, Jost, Pinyon_Script } from "next/font/google";
 import { getMergedConfig } from "@/lib/settingsService";
 import { getAppOrigin } from "@/lib/appUrl";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
+import ThemeStyle from "@/components/ThemeStyle";
 import { WeddingConfigProvider } from "@/components/WeddingConfigProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
 import "./globals.css";
@@ -108,6 +109,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en" className={`${serif.variable} ${sans.variable} ${script.variable}`}>
+      <head>
+        <ThemeStyle theme={config.theme} />
+      </head>
       <body>
         <LanguageProvider>
           <WeddingConfigProvider value={config}>{children}</WeddingConfigProvider>

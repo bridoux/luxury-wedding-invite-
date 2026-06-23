@@ -9,46 +9,45 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        // ── Warm earth-tone palette: cream · camel · chestnut · espresso ──
-        // Surface / background (warm cream)
+        // ── Themeable palette ──────────────────────────────────────────
+        // Backed by CSS variables (channel form) injected per-request from the
+        // admin-saved theme. See lib/theme.ts + components/ThemeStyle.tsx.
+        // Token names are kept stable so existing classes don't change.
         ivory: {
-          DEFAULT: "#F3EAD6",
-          50: "#FBF6EA",
-          100: "#F3EAD6",
-          200: "#E9DBC1",
-          300: "#DECBAB"
+          DEFAULT: "rgb(var(--c-bg) / <alpha-value>)",
+          50: "rgb(var(--c-surface) / <alpha-value>)",
+          100: "rgb(var(--c-bg) / <alpha-value>)",
+          200: "rgb(var(--c-bg-200) / <alpha-value>)",
+          300: "rgb(var(--c-bg-300) / <alpha-value>)"
         },
-        // Primary accent — warm camel/bronze (was champagne gold)
         champagne: {
-          DEFAULT: "#B98A5E",
-          light: "#D7AA7E",
-          dark: "#8A5A36",
-          deep: "#5C3922"
+          DEFAULT: "rgb(var(--c-primary) / <alpha-value>)",
+          light: "rgb(var(--c-primary-light) / <alpha-value>)",
+          dark: "rgb(var(--c-primary-dark) / <alpha-value>)",
+          deep: "rgb(var(--c-primary-deep) / <alpha-value>)"
         },
         gold: {
-          DEFAULT: "#B98A5E",
-          soft: "#D0A878"
+          DEFAULT: "rgb(var(--c-primary) / <alpha-value>)",
+          soft: "rgb(var(--c-gold-soft) / <alpha-value>)"
         },
-        // Warm sand / clay (repurposed "blush")
         blush: {
-          DEFAULT: "#C99A72",
-          light: "#EEDFC6",
-          dark: "#8A4B33"
+          DEFAULT: "rgb(var(--c-blush) / <alpha-value>)",
+          light: "rgb(var(--c-blush-light) / <alpha-value>)",
+          dark: "rgb(var(--c-blush-dark) / <alpha-value>)"
         },
-        // Mocha / taupe (repurposed "sage")
         sage: {
-          DEFAULT: "#9A7B5C",
-          light: "#E4D5BC",
-          dark: "#6E4A30"
+          DEFAULT: "rgb(var(--c-sage) / <alpha-value>)",
+          light: "rgb(var(--c-sage-light) / <alpha-value>)",
+          dark: "rgb(var(--c-sage-dark) / <alpha-value>)"
         },
         emerald: {
-          deep: "#3A2620"
+          deep: "rgb(var(--c-text) / <alpha-value>)"
         },
-        // Text — espresso brown
+        script: "rgb(var(--c-script) / <alpha-value>)",
         ink: {
-          DEFAULT: "#3A2620",
-          soft: "#5A4636",
-          light: "#8A7257"
+          DEFAULT: "rgb(var(--c-text) / <alpha-value>)",
+          soft: "rgb(var(--c-text-soft) / <alpha-value>)",
+          light: "rgb(var(--c-text-light) / <alpha-value>)"
         }
       },
       fontFamily: {
@@ -69,13 +68,13 @@ const config: Config = {
       },
       backgroundImage: {
         "ivory-wash":
-          "radial-gradient(120% 90% at 15% 0%, #FBF6EA 0%, #F3EAD6 45%, #E9DBC1 100%)",
+          "radial-gradient(120% 90% at 15% 0%, rgb(var(--c-surface)) 0%, rgb(var(--c-bg)) 45%, rgb(var(--c-bg-200)) 100%)",
         "romantic-gradient":
-          "radial-gradient(130% 100% at 50% -10%, #FBF6EA 0%, #EFDFC6 55%, #E4D2B0 100%)",
+          "radial-gradient(130% 100% at 50% -10%, rgb(var(--c-surface)) 0%, rgb(var(--c-bg)) 55%, rgb(var(--c-bg-300)) 100%)",
         "gold-rule":
-          "linear-gradient(90deg, transparent, rgba(185,138,94,0.7) 18%, #B98A5E 50%, rgba(185,138,94,0.7) 82%, transparent)",
+          "linear-gradient(90deg, transparent, rgb(var(--c-primary) / 0.7) 18%, rgb(var(--c-primary)) 50%, rgb(var(--c-primary) / 0.7) 82%, transparent)",
         "foil":
-          "linear-gradient(115deg, #8A5A36 0%, #D7AA7E 28%, #B98A5E 50%, #E0C49A 70%, #8A5A36 100%)"
+          "linear-gradient(115deg, rgb(var(--c-primary-dark)) 0%, rgb(var(--c-primary-light)) 28%, rgb(var(--c-primary)) 50%, rgb(var(--c-gold-soft)) 70%, rgb(var(--c-primary-dark)) 100%)"
       },
       keyframes: {
         floatY: {

@@ -8,10 +8,34 @@
    ════════════════════════════════════════════════════════════════ */
 
 :root {
-  --paper: #fbf6ea;
-  --gold: #b98a5e;
-  --gold-deep: #5c3922;
-  --ink: #3a2620;
+  /* ── Themeable palette (channel form: "R G B") ──────────────────────
+     Defaults below match lib/theme.ts DEFAULT_THEME. ThemeStyle re-injects
+     these per-request from the admin-saved theme, overriding these. */
+  --c-bg: 243 234 214;
+  --c-surface: 251 246 234;
+  --c-bg-200: 233 219 193;
+  --c-bg-300: 222 203 171;
+  --c-primary: 185 138 94;
+  --c-primary-light: 215 170 126;
+  --c-primary-dark: 138 90 54;
+  --c-primary-deep: 92 57 34;
+  --c-gold-soft: 208 168 120;
+  --c-script: 138 90 54;
+  --c-text: 58 38 32;
+  --c-text-soft: 90 70 54;
+  --c-text-light: 138 114 87;
+  --c-blush: 201 154 114;
+  --c-blush-light: 238 223 198;
+  --c-blush-dark: 138 75 51;
+  --c-sage: 154 123 92;
+  --c-sage-light: 228 213 188;
+  --c-sage-dark: 110 74 48;
+
+  /* Convenience aliases (resolve to themed colors) */
+  --paper: rgb(var(--c-surface));
+  --gold: rgb(var(--c-primary));
+  --gold-deep: rgb(var(--c-primary-deep));
+  --ink: rgb(var(--c-text));
 
   /* Fluid type scale (≈1.28 ratio) */
   --step--1: clamp(0.78rem, 0.74rem + 0.2vw, 0.88rem);
@@ -35,9 +59,9 @@
     line-height: 1.65;
     -webkit-font-smoothing: antialiased;
     text-rendering: optimizeLegibility;
-    background-color: #f3ead6;
+    background-color: rgb(var(--c-bg));
     /* Base wash + fine vellum grain (static layers) */
-    background-image: linear-gradient(180deg, #faf4e4 0%, #f3ead6 30%, #f0e4cb 100%),
+    background-image: linear-gradient(180deg, rgb(var(--c-surface)) 0%, rgb(var(--c-bg)) 30%, rgb(var(--c-bg-300)) 100%),
       url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='120' height='120' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
     background-blend-mode: normal, multiply;
     background-attachment: fixed, scroll;
@@ -54,7 +78,7 @@
   }
 
   ::selection {
-    background: rgba(185, 138, 94, 0.28);
+    background: rgb(var(--c-primary) / 0.28);
     color: var(--ink);
   }
 
@@ -73,7 +97,8 @@
 @layer components {
   /* ── Typography helpers ──────────────────────────────────── */
   .script {
-    @apply font-script text-champagne-dark;
+    @apply font-script;
+    color: rgb(var(--c-script));
     line-height: 1;
   }
   .display {
@@ -105,10 +130,10 @@
     content: "";
     height: 1px;
     width: clamp(1.5rem, 8vw, 3.5rem);
-    background: linear-gradient(90deg, transparent, rgba(185, 138, 94, 0.8));
+    background: linear-gradient(90deg, transparent, rgb(var(--c-primary) / 0.8));
   }
   .eyebrow::after {
-    background: linear-gradient(90deg, rgba(185, 138, 94, 0.8), transparent);
+    background: linear-gradient(90deg, rgb(var(--c-primary) / 0.8), transparent);
   }
   /* left-aligned variant (no flanking rules) */
   .eyebrow-plain {
@@ -132,7 +157,7 @@
     position: absolute;
     inset: 7px;
     border-radius: 8px;
-    border: 1px solid rgba(185, 138, 94, 0.4);
+    border: 1px solid rgb(var(--c-primary) / 0.4);
     pointer-events: none;
   }
 
@@ -150,7 +175,7 @@
     position: absolute;
     inset: 7px;
     border-radius: 8px;
-    border: 1px solid rgba(185, 138, 94, 0.38);
+    border: 1px solid rgb(var(--c-primary) / 0.38);
     pointer-events: none;
   }
   /* legacy divider name */
@@ -182,7 +207,7 @@
       px-9 py-3.5 font-sans uppercase text-ivory-50 transition-all duration-500;
     font-size: var(--step--1);
     letter-spacing: 0.22em;
-    background: linear-gradient(120deg, #8a5a36, #b98a5e 45%, #e0c49a 50%, #b98a5e 55%, #8a5a36);
+    background: linear-gradient(120deg, rgb(var(--c-primary-dark)), rgb(var(--c-primary)) 45%, rgb(var(--c-gold-soft)) 50%, rgb(var(--c-primary)) 55%, rgb(var(--c-primary-dark)));
     background-size: 220% 100%;
     background-position: 0% 0;
     box-shadow: theme("boxShadow.gold");
@@ -207,7 +232,7 @@
     letter-spacing: 0.22em;
   }
   .btn-outline:hover {
-    box-shadow: 0 6px 20px -10px rgba(185, 138, 94, 0.5);
+    box-shadow: 0 6px 20px -10px rgb(var(--c-primary) / 0.5);
   }
   .btn-outline:active {
     transform: scale(0.985);
@@ -225,7 +250,7 @@
   }
   .input-field:focus {
     @apply border-champagne bg-ivory-50;
-    box-shadow: 0 0 0 3px rgba(185, 138, 94, 0.16);
+    box-shadow: 0 0 0 3px rgb(var(--c-primary) / 0.16);
   }
   .field-label {
     @apply mb-2 block font-sans uppercase text-ink-soft;
@@ -263,14 +288,14 @@
 /* Gold-foil sheen sweeping across text (adapted from 21st.dev ShiningText).
    Solid chestnut-gold fallback keeps names readable if bg-clip is unsupported. */
 .foil-text {
-  color: #8a5a36;
+  color: rgb(var(--c-primary-dark));
   background-image: linear-gradient(
     110deg,
-    #8a5a36 25%,
-    #ecd3a8 42%,
-    #b98a5e 50%,
-    #ecd3a8 58%,
-    #8a5a36 75%
+    rgb(var(--c-primary-dark)) 25%,
+    rgb(var(--c-gold-soft)) 42%,
+    rgb(var(--c-primary)) 50%,
+    rgb(var(--c-gold-soft)) 58%,
+    rgb(var(--c-primary-dark)) 75%
   );
   background-size: 220% 100%;
   -webkit-background-clip: text;
