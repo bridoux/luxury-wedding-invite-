@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getSupabase } from "@/lib/supabaseClient";
 import { appUrl } from "@/lib/appUrl";
+import { parseGuestFile, type ParsedImport } from "@/lib/guestImport";
 
 /**
  * Admin guest manager — add / edit / delete the real guest list that drives
@@ -52,6 +53,14 @@ export default function AdminGuests() {
   const [email, setEmail] = useState("");
   const [greeting, setGreeting] = useState("");
   const [adding, setAdding] = useState(false);
+
+  // bulk import (CSV / Excel)
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [parsing, setParsing] = useState(false);
+  const [importPreview, setImportPreview] = useState<ParsedImport | null>(null);
+  const [importFileName, setImportFileName] = useState("");
+  const [importing, setImporting] = useState(false);
+  const [importMsg, setImportMsg] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     const supabase = getSupabase();
@@ -130,6 +139,70 @@ export default function AdminGuests() {
     }
   };
 
+  const handleFile = async (file: File) => {
+    setErr(null);
+    setImportMsg(null);
+    setImportPreview(null);
+    setParsing(true);
+    try {
+      const parsed = await parseGuestFile(file);
+      setImportFileName(file.name);
+      setImportPreview(parsed);
+      if (parsed.valid.length === 0) {
+        setErr("No valid guest rows found. Make sure there's a name column (or one column of names).");
+      }
+    } catch (e) {
+      setErr(e instanceof Error ? `Could not read that file: ${e.message}` : "Could not read that file.");
+    } finally {
+      setParsing(false);
+    }
+  };
+
+  const cancelImport = () => {
+    setImportPreview(null);
+    setImportFileName("");
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  const confirmImport = async () => {
+    const supabase = getSupabase();
+    if (!supabase || !importPreview) return;
+    setImporting(true);
+    setErr(null);
+    const rows = importPreview.valid;
+    const CHUNK = 500;
+    let saved = 0;
+    for (let i = 0; i < rows.length; i += CHUNK) {
+      const batch = rows.slice(i, i + CHUNK);
+      // upsert on guest_code so re-importing updates matching parties instead of erroring
+      const { error } = await supabase.from("guests").upsert(batch, { onConflict: "guest_code" });
+      if (error) {
+        setErr(`Import stopped after ${saved} saved: ${error.message}`);
+        setImporting(false);
+        await load();
+        return;
+      }
+      saved += batch.length;
+    }
+    setImporting(false);
+    setImportMsg(`Imported ${saved} ${saved === 1 ? "party" : "parties"}.`);
+    cancelImport();
+    await load();
+  };
+
+  const downloadTemplate = () => {
+    const csv =
+      "name,max_guests,email,phone,greeting\n" +
+      'The Okafor Family,4,okafor@example.com,+2250700000000,"We can\'t wait to celebrate with you!"\n' +
+      "Amara Johnson,1,amara@example.com,,\n";
+    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "guest-list-template.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (loading) {
     return (
       <div className="flex justify-center py-20">
@@ -193,6 +266,116 @@ export default function AdminGuests() {
             </span>
           )}
         </div>
+      </section>
+
+      {/* Bulk import */}
+      <section className="paper-plain p-6">
+        <div className="mb-2 flex items-center justify-between gap-3">
+          <h3 className="font-serif text-2xl font-light text-ink">Import from CSV or Excel</h3>
+          <button
+            type="button"
+            onClick={downloadTemplate}
+            className="font-sans text-xs uppercase tracking-[0.15em] text-champagne-dark underline-offset-4 hover:underline"
+          >
+            Download template
+          </button>
+        </div>
+        <p className="mb-4 font-sans text-sm text-ink-light">
+          Upload a <span className="font-mono text-xs">.csv</span> or <span className="font-mono text-xs">.xlsx</span> file.
+          Recognized columns: <span className="font-mono text-xs">name</span> (required),{" "}
+          <span className="font-mono text-xs">max_guests</span>, <span className="font-mono text-xs">email</span>,{" "}
+          <span className="font-mono text-xs">phone</span>, <span className="font-mono text-xs">greeting</span>. Invite codes are
+          generated from names automatically. Re-importing updates parties with matching invite codes.
+        </p>
+
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept=".csv,.xlsx,.xls,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+          onChange={(e) => {
+            const f = e.target.files?.[0];
+            if (f) void handleFile(f);
+          }}
+          className="block w-full cursor-pointer rounded-lg border border-champagne/30 bg-ivory/40 px-3 py-2 font-sans text-sm text-ink-soft file:mr-3 file:cursor-pointer file:rounded-md file:border-0 file:bg-champagne/20 file:px-3 file:py-1.5 file:font-sans file:text-xs file:uppercase file:tracking-wider file:text-champagne-dark"
+        />
+
+        {parsing && <p className="mt-3 font-sans text-sm text-ink-light">Reading file…</p>}
+        {importMsg && (
+          <p className="mt-3 rounded-lg bg-sage-light/50 px-4 py-2 font-sans text-sm text-sage-dark">{importMsg}</p>
+        )}
+
+        {importPreview && (
+          <div className="mt-5 rounded-xl border border-champagne/20 bg-ivory/40 p-5">
+            <p className="font-sans text-sm text-ink-soft">
+              <span className="font-semibold text-ink">{importPreview.valid.length}</span> ready to import
+              {importPreview.skipped.length > 0 && (
+                <>
+                  {" · "}
+                  <span className="text-blush-dark">{importPreview.skipped.length} skipped</span>
+                </>
+              )}{" "}
+              <span className="text-ink-light">from {importFileName}</span>
+            </p>
+            {importPreview.assumedNoHeader && (
+              <p className="mt-1 font-sans text-xs text-ink-light">
+                No header row detected — treated the first column as names.
+              </p>
+            )}
+
+            {importPreview.valid.length > 0 && (
+              <div className="mt-4 overflow-x-auto">
+                <table className="w-full border-collapse font-sans text-xs">
+                  <thead>
+                    <tr className="text-left text-ink-light">
+                      <th className="py-1 pr-4 font-medium">Name</th>
+                      <th className="py-1 pr-4 font-medium">Max</th>
+                      <th className="py-1 pr-4 font-medium">Email</th>
+                      <th className="py-1 font-medium">Invite code</th>
+                    </tr>
+                  </thead>
+                  <tbody className="text-ink-soft">
+                    {importPreview.valid.slice(0, 8).map((g) => (
+                      <tr key={g.guest_code} className="border-t border-champagne/10">
+                        <td className="py-1 pr-4">{g.full_name}</td>
+                        <td className="py-1 pr-4">{g.max_guests}</td>
+                        <td className="py-1 pr-4">{g.email ?? "—"}</td>
+                        <td className="py-1 font-mono text-champagne-dark">{g.guest_code}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+                {importPreview.valid.length > 8 && (
+                  <p className="mt-2 font-sans text-xs text-ink-light">…and {importPreview.valid.length - 8} more.</p>
+                )}
+              </div>
+            )}
+
+            {importPreview.skipped.length > 0 && (
+              <p className="mt-3 font-sans text-xs text-blush-dark">
+                Skipped rows:{" "}
+                {importPreview.skipped
+                  .slice(0, 5)
+                  .map((s) => `row ${s.row} (${s.reason})`)
+                  .join(", ")}
+                {importPreview.skipped.length > 5 && ` …+${importPreview.skipped.length - 5} more`}
+              </p>
+            )}
+
+            <div className="mt-4 flex items-center gap-3">
+              <button
+                type="button"
+                onClick={confirmImport}
+                disabled={importing || importPreview.valid.length === 0}
+                className="btn-gold disabled:opacity-60"
+              >
+                {importing ? "Importing…" : `Import ${importPreview.valid.length} ${importPreview.valid.length === 1 ? "party" : "parties"}`}
+              </button>
+              <button type="button" onClick={cancelImport} disabled={importing} className="btn-outline px-5 py-2 text-xs">
+                Cancel
+              </button>
+            </div>
+          </div>
+        )}
       </section>
 
       {/* Guest list */}
