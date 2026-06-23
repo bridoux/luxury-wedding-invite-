@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { cache } from "react";
 import { Marcellus, Jost, Pinyon_Script } from "next/font/google";
 import { getMergedConfig } from "@/lib/settingsService";
+import { getAppOrigin } from "@/lib/appUrl";
 import ServiceWorkerRegister from "@/components/ServiceWorkerRegister";
 import { WeddingConfigProvider } from "@/components/WeddingConfigProvider";
 import { LanguageProvider } from "@/components/LanguageProvider";
@@ -30,9 +31,9 @@ const script = Pinyon_Script({
   display: "swap"
 });
 
-// Base URL for absolute OG/Twitter image links. Set NEXT_PUBLIC_SITE_URL in
-// Vercel to your real domain so social previews resolve correctly.
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? "https://ruthanderic.wedding";
+// Base URL for absolute OG/Twitter image links. Resolves NEXT_PUBLIC_SITE_URL
+// (set in Vercel to your real domain) so social previews resolve correctly.
+const siteUrl = getAppOrigin();
 
 // De-dupe the settings read: generateMetadata, generateViewport, and the layout
 // all call this within one request, but the DB is hit at most once.

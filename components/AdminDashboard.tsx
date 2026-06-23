@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabaseClient";
+import { appUrl } from "@/lib/appUrl";
 import { useWeddingConfig } from "@/components/WeddingConfigProvider";
 import AdminSettings from "@/components/AdminSettings";
 import AdminGuests from "@/components/AdminGuests";
@@ -362,7 +363,7 @@ function LoginCard() {
     const { error } = await supabase.auth.signUp({
       email: email.trim(),
       password,
-      options: { emailRedirectTo: typeof window !== "undefined" ? window.location.href : undefined }
+      options: { emailRedirectTo: appUrl("/admin") }
     });
     if (error) setErr(error.message);
     else setMsg("Account created. Check your email to confirm, then sign in.");
@@ -377,7 +378,7 @@ function LoginCard() {
     setMsg(null);
     const { error } = await supabase.auth.signInWithOtp({
       email: email.trim(),
-      options: { emailRedirectTo: typeof window !== "undefined" ? window.location.href : undefined }
+      options: { emailRedirectTo: appUrl("/admin") }
     });
     if (error) setErr(error.message);
     else setMsg("Magic link sent. Check your email and click it to sign in.");

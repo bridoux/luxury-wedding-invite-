@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { getSupabase } from "@/lib/supabaseClient";
+import { appUrl } from "@/lib/appUrl";
 
 /**
  * Admin guest manager — add / edit / delete the real guest list that drives
@@ -32,8 +33,9 @@ function slugify(s: string): string {
 }
 
 function inviteUrl(code: string): string {
-  const origin = typeof window !== "undefined" ? window.location.origin : "";
-  return `${origin}/invite/${code}`;
+  // Always build invite links against the canonical site, not whatever deploy
+  // (preview / localhost) the admin happens to be viewing.
+  return appUrl(`/invite/${code}`);
 }
 
 export default function AdminGuests() {
