@@ -4,9 +4,32 @@ import SectionWrapper from "@/components/SectionWrapper";
 import { useLocalizedConfig } from "@/components/WeddingConfigProvider";
 import { useT } from "@/components/LanguageProvider";
 
+/**
+ * Build the embeddable map from the address link the admin actually edits, so
+ * the preview always tracks it. Prefers the @lat,lng baked into a Google Maps
+ * place URL (most precise), then a `q=` param, then the typed address, and only
+ * falls back to a stored embed URL as a last resort.
+ */
+function buildMapEmbed(loc: {
+  googleMapsUrl?: string;
+  googleMapsEmbed?: string;
+  fullAddress?: string;
+  primaryVenue?: string;
+}): string {
+  const url = loc.googleMapsUrl ?? "";
+  const coords = url.match(/@(-?\d+\.\d+),(-?\d+\.\d+)/);
+  if (coords) return `https://www.google.com/maps?q=${coords[1]},${coords[2]}&output=embed`;
+  const qParam = url.match(/[?&]q=([^&]+)/);
+  if (qParam) return `https://www.google.com/maps?q=${qParam[1]}&output=embed`;
+  const query = (loc.fullAddress || loc.primaryVenue || "").trim();
+  if (query) return `https://www.google.com/maps?q=${encodeURIComponent(query)}&output=embed`;
+  return loc.googleMapsEmbed ?? "";
+}
+
 export default function LocationSection() {
   const { location } = useLocalizedConfig();
   const t = useT();
+  const mapEmbed = buildMapEmbed(location);
 
   return (
     <SectionWrapper id="location" eyebrow={t.location.eyebrow} script={t.location.script} title={t.location.title}>
@@ -15,7 +38,7 @@ export default function LocationSection() {
         <div className="relative h-64 w-full bg-sage-light/40 sm:h-80">
           <iframe
             title={`Map to ${location.primaryVenue}`}
-            src={location.googleMapsEmbed}
+            src={mapEmbed}
             className="h-full w-full border-0"
             loading="lazy"
             referrerPolicy="no-referrer-when-downgrade"
