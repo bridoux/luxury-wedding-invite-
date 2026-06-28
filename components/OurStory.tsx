@@ -2,34 +2,17 @@
 
 import { motion, useReducedMotion } from "framer-motion";
 import SectionWrapper from "@/components/SectionWrapper";
+import MomentCarousel from "@/components/MomentCarousel";
 import { useLocalizedConfig } from "@/components/WeddingConfigProvider";
 import { useT } from "@/components/LanguageProvider";
 
 const EASE = [0.16, 1, 0.3, 1] as const;
 
-/** Elegant framed photo placeholder (shows real image if present, else duotone). */
-function StoryPhoto({ src, label, initials }: { src: string; label: string; initials: string }) {
-  return (
-    <div className="relative h-52 w-full overflow-hidden rounded-md bg-gradient-to-br from-blush-light via-ivory-100 to-sage-light">
-      <span className="pointer-events-none absolute inset-[7px] z-10 rounded border border-champagne/40" />
-      <span className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-1 text-champagne/70">
-        <span className="script text-4xl">{initials}</span>
-        <span className="font-sans text-[0.55rem] uppercase tracking-[0.3em] text-champagne-dark/70">
-          {label}
-        </span>
-      </span>
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={label}
-        loading="lazy"
-        className="relative z-[1] h-full w-full object-cover"
-        onError={(e) => {
-          (e.currentTarget as HTMLImageElement).style.opacity = "0";
-        }}
-      />
-    </div>
-  );
+/** Resolve a moment's photos, supporting both the new images[] and legacy image. */
+function imagesFor(item: { image?: string; images?: string[] }): string[] {
+  const list = Array.isArray(item.images) ? item.images.filter(Boolean) : [];
+  if (list.length) return list;
+  return item.image ? [item.image] : [];
 }
 
 export default function OurStory() {
@@ -66,7 +49,11 @@ export default function OurStory() {
                 />
 
                 <div className="paper-plain overflow-hidden">
-                  <StoryPhoto src={item.image} label={item.title} initials={couple.initials} />
+                  <MomentCarousel
+                    images={imagesFor(item as { image?: string; images?: string[] })}
+                    label={item.title}
+                    initials={couple.initials}
+                  />
                   <div className="p-6">
                     <p className="font-sans text-[0.62rem] uppercase tracking-[0.28em] text-champagne-dark">
                       {item.date}

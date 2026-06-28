@@ -17,7 +17,7 @@ interface StoryItem {
   dateFr: string;
   text: string;
   textFr: string;
-  image: string;
+  images: string[];
 }
 interface GalleryItem {
   src: string;
@@ -117,7 +117,9 @@ export default function AdminContent() {
       setForm({
         story: c.story.map((item) => {
           const o = item as Record<string, unknown>;
-          return { title: item.title, titleFr: s(o, "titleFr"), date: item.date, dateFr: s(o, "dateFr"), text: item.text, textFr: s(o, "textFr"), image: item.image };
+          const imgs = sa(o, "images");
+          const images = imgs.length ? imgs : item.image ? [item.image] : [];
+          return { title: item.title, titleFr: s(o, "titleFr"), date: item.date, dateFr: s(o, "dateFr"), text: item.text, textFr: s(o, "textFr"), images };
         }),
         gallery: c.gallery.map((g) => {
           const o = g as Record<string, unknown>;
@@ -150,7 +152,8 @@ export default function AdminContent() {
     setErr(null);
     setMsg(null);
     const payload: SettingsOverrides = {
-      story: form.story,
+      // keep legacy `image` (first photo) populated for backward compatibility
+      story: form.story.map((m) => ({ ...m, images: m.images.filter(Boolean), image: m.images.find(Boolean) ?? "" })),
       gallery: form.gallery,
       dressCode: form.dressCode,
       music: form.music
@@ -186,7 +189,7 @@ export default function AdminContent() {
       {msg && <p className="rounded-lg bg-sage-light/30 px-4 py-2 font-sans text-sm text-ink-soft">{msg}</p>}
 
       {/* Our Story */}
-      <Group title="Our Story" addLabel="+ Add moment" onAdd={() => patch({ story: [...form.story, { title: "", titleFr: "", date: "", dateFr: "", text: "", textFr: "", image: "" }] })}>
+      <Group title="Our Story" addLabel="+ Add moment" onAdd={() => patch({ story: [...form.story, { title: "", titleFr: "", date: "", dateFr: "", text: "", textFr: "", images: [] }] })}>
         <div className="space-y-5">
           {form.story.map((s, i) => (
             <div key={i} className="rounded-lg border border-champagne/20 p-4">
@@ -200,7 +203,48 @@ export default function AdminContent() {
                 <Input label="Date label" value={s.date} onChange={(v) => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, date: v } : x)) })} />
                 <Input label="Date label (FR)" value={s.dateFr} onChange={(v) => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, dateFr: v } : x)) })} />
                 <div className="sm:col-span-2">
-                  <ImageUploader label="Image" folder="story" value={s.image} onChange={(v) => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, image: v } : x)) })} />
+                  <div className="mb-2 flex items-center justify-between">
+                    <span className="field-label mb-0">Photos {s.images.length > 1 ? "(shown as a carousel)" : ""}</span>
+                    <button
+                      type="button"
+                      onClick={() => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, images: [...x.images, ""] } : x)) })}
+                      className="btn-outline px-3 py-1.5 text-xs"
+                    >
+                      + Add photo
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {(s.images.length ? s.images : [""]).map((img, gi) => (
+                      <div key={gi} className="flex items-end gap-2">
+                        <div className="flex-1">
+                          <ImageUploader
+                            label={`Photo ${gi + 1}`}
+                            folder="story"
+                            value={img}
+                            onChange={(v) =>
+                              patch({
+                                story: form.story.map((x, xi) =>
+                                  xi === i
+                                    ? { ...x, images: (x.images.length ? x.images : [""]).map((y, yi) => (yi === gi ? v : y)) }
+                                    : x
+                                )
+                              })
+                            }
+                          />
+                        </div>
+                        {s.images.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, images: x.images.filter((_, yi) => yi !== gi) } : x)) })}
+                            className="mb-1 rounded-lg border border-blush-dark/40 px-3 py-2 text-blush-dark"
+                            aria-label={`Remove photo ${gi + 1}`}
+                          >
+                            ✕
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
                 </div>
                 <label className="block sm:col-span-2">
                   <span className="field-label">Text</span>
