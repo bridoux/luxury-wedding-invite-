@@ -59,7 +59,9 @@ export default function MomentCarousel({ images, label, initials }: MomentCarous
   const reduce = useReducedMotion();
   const trackRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
   const count = images.length;
+  const AUTOPLAY_MS = 5000;
 
   const scrollToIndex = useCallback(
     (i: number) => {
@@ -89,12 +91,30 @@ export default function MomentCarousel({ images, label, initials }: MomentCarous
     return () => io.disconnect();
   }, [count]);
 
+  // Autoplay: advance on a timer, loop at the end. Paused on hover/focus/touch,
+  // disabled for reduced-motion.
+  useEffect(() => {
+    if (reduce || count <= 1 || paused) return;
+    const id = setTimeout(() => scrollToIndex((current + 1) % count), AUTOPLAY_MS);
+    return () => clearTimeout(id);
+  }, [current, count, paused, reduce, scrollToIndex]);
+
   if (count <= 1) {
     return <Framed src={images[0]} label={label} initials={initials} />;
   }
 
   return (
-    <div className="group/carousel relative" role="group" aria-roledescription="carousel" aria-label={`${label} photos`}>
+    <div
+      className="group/carousel relative"
+      role="group"
+      aria-roledescription="carousel"
+      aria-label={`${label} photos`}
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+      onFocusCapture={() => setPaused(true)}
+      onBlurCapture={() => setPaused(false)}
+      onTouchStart={() => setPaused(true)}
+    >
       <div ref={trackRef} className="no-scrollbar flex snap-x snap-mandatory overflow-x-auto" style={{ scrollbarWidth: "none" }}>
         {images.map((src, i) => (
           <div key={src + i} className="w-full flex-none snap-center" aria-label={`${i + 1} of ${count}`} role="group" aria-roledescription="slide">

@@ -15,7 +15,9 @@ export default function Gallery() {
   const trackRef = useRef<HTMLDivElement>(null);
   const [current, setCurrent] = useState(0);
   const [lightbox, setLightbox] = useState<number | null>(null);
+  const [paused, setPaused] = useState(false);
   const count = gallery.length;
+  const AUTOPLAY_MS = 5000;
 
   const scrollToIndex = useCallback(
     (i: number) => {
@@ -48,6 +50,14 @@ export default function Gallery() {
     return () => io.disconnect();
   }, [count]);
 
+  // Autoplay: advance on a timer, loop at the end. Paused on hover/focus/touch,
+  // while the lightbox is open, and disabled for reduced-motion.
+  useEffect(() => {
+    if (reduce || count <= 1 || paused || lightbox !== null) return;
+    const id = setTimeout(() => scrollToIndex((current + 1) % count), AUTOPLAY_MS);
+    return () => clearTimeout(id);
+  }, [current, count, paused, lightbox, reduce, scrollToIndex]);
+
   const onKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === "ArrowRight") {
       e.preventDefault();
@@ -66,6 +76,11 @@ export default function Gallery() {
         aria-roledescription="carousel"
         aria-label={t.gallery.title}
         onKeyDown={onKeyDown}
+        onMouseEnter={() => setPaused(true)}
+        onMouseLeave={() => setPaused(false)}
+        onFocusCapture={() => setPaused(true)}
+        onBlurCapture={() => setPaused(false)}
+        onTouchStart={() => setPaused(true)}
       >
         {/* Slides */}
         <div
