@@ -61,7 +61,7 @@ export default function Gallery() {
   return (
     <SectionWrapper id="gallery" eyebrow={t.gallery.eyebrow} script={t.gallery.script} title={t.gallery.title}>
       <div
-        className="relative"
+        className="relative mx-auto max-w-xl"
         role="group"
         aria-roledescription="carousel"
         aria-label={t.gallery.title}
@@ -86,7 +86,7 @@ export default function Gallery() {
                 type="button"
                 onClick={() => setLightbox(i)}
                 aria-label={`Open photo: ${img.caption ?? "wedding moment"}`}
-                className="group relative block aspect-[4/3] w-full overflow-hidden rounded-lg shadow-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne sm:aspect-[3/2]"
+                className="group relative block aspect-[4/5] w-full overflow-hidden rounded-lg shadow-paper focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-champagne"
               >
                 {/* Duotone placeholder backdrop + monogram (shows if image is missing) */}
                 <span

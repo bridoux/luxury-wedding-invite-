@@ -6,7 +6,7 @@ import { useReducedMotion } from "framer-motion";
 /** One framed story photo (real image over a duotone monogram placeholder). */
 function Framed({ src, label, initials }: { src?: string; label: string; initials: string }) {
   return (
-    <div className="relative h-52 w-full overflow-hidden rounded-md bg-gradient-to-br from-blush-light via-ivory-100 to-sage-light">
+    <div className="relative aspect-[4/5] w-full overflow-hidden rounded-md bg-gradient-to-br from-blush-light via-ivory-100 to-sage-light">
       <span className="pointer-events-none absolute inset-[7px] z-10 rounded border border-champagne/40" />
       <span className="absolute inset-0 z-0 flex flex-col items-center justify-center gap-1 text-champagne/70">
         <span className="script text-4xl">{initials}</span>
