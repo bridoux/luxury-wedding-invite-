@@ -3,6 +3,19 @@
 import { useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useT } from "@/components/LanguageProvider";
+import { useWeddingConfig } from "@/components/WeddingConfigProvider";
+import { resolveVisibility } from "@/lib/visibility";
+
+// Maps a nav target id → its visibility key (ids without a key always show).
+const NAV_VISIBILITY: Record<string, "countdown" | "story" | "details" | "location" | "dressCode" | "gallery" | "gift"> = {
+  countdown: "countdown",
+  story: "story",
+  details: "details",
+  location: "location",
+  dresscode: "dressCode",
+  gallery: "gallery",
+  gift: "gift"
+};
 
 const iconBase = {
   width: 22,
@@ -28,14 +41,20 @@ export default function FloatingNavigation({
   onNavigate: (id: string) => void;
 }) {
   const t = useT();
+  const visibility = resolveVisibility((useWeddingConfig() as { visibility?: unknown }).visibility);
   const [menuOpen, setMenuOpen] = useState(false);
+
+  const isVisible = (id: string) => {
+    const key = NAV_VISIBILITY[id];
+    return key ? visibility[key] : true;
+  };
 
   const coreItems = [
     { id: "home", label: t.nav.home },
     { id: "story", label: t.nav.story },
     { id: "details", label: t.nav.details },
     { id: "rsvp", label: t.nav.rsvp }
-  ];
+  ].filter((i) => isVisible(i.id));
 
   const allSections = [
     { id: "home", label: t.nav.invitation },
@@ -47,7 +66,7 @@ export default function FloatingNavigation({
     { id: "gallery", label: t.nav.gallery },
     { id: "gift", label: t.nav.gift },
     { id: "rsvp", label: t.nav.rsvp }
-  ];
+  ].filter((s) => isVisible(s.id));
 
   const handle = (id: string) => {
     setMenuOpen(false);

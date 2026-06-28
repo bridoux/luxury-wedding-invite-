@@ -24,6 +24,7 @@ import { MonogramCrest } from "@/components/Ornaments";
 import { useLocalizedConfig } from "@/components/WeddingConfigProvider";
 import { useT } from "@/components/LanguageProvider";
 import { recordInvitationOpen } from "@/lib/mockGuests";
+import { resolveVisibility } from "@/lib/visibility";
 
 interface InvitationExperienceProps {
   /** Optional personalized guest context from /invite/[guestCode]. */
@@ -40,6 +41,7 @@ export default function InvitationExperience({
   greeting
 }: InvitationExperienceProps) {
   const weddingConfig = useLocalizedConfig();
+  const visibility = resolveVisibility((weddingConfig as { visibility?: unknown }).visibility);
   const t = useT();
   const [opened, setOpened] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -84,7 +86,7 @@ export default function InvitationExperience({
       <div className="relative pb-28">
         <FloatingPetals count={10} />
         <ScrollHeader onNavigate={scrollTo} />
-        <MusicToggle />
+        {visibility.music && <MusicToggle />}
 
             <div className="relative z-10">
               {/* Personalized greeting banner */}
@@ -104,24 +106,26 @@ export default function InvitationExperience({
 
               <InvitationHero onNavigate={scrollTo} />
 
-              <SectionWrapper
-                id="countdown"
-                eyebrow={t.countdown.eyebrow}
-                script={t.countdown.script}
-                title={t.countdown.title}
-              >
-                <CountdownTimer />
-                <p className="mx-auto mt-10 max-w-md text-center font-serif text-xl font-light italic text-champagne-dark">
-                  {weddingConfig.invitation.teaser}
-                </p>
-              </SectionWrapper>
+              {visibility.countdown && (
+                <SectionWrapper
+                  id="countdown"
+                  eyebrow={t.countdown.eyebrow}
+                  script={t.countdown.script}
+                  title={t.countdown.title}
+                >
+                  <CountdownTimer />
+                  <p className="mx-auto mt-10 max-w-md text-center font-serif text-xl font-light italic text-champagne-dark">
+                    {weddingConfig.invitation.teaser}
+                  </p>
+                </SectionWrapper>
+              )}
 
-              <OurStory />
-              <WeddingDetails />
-              <LocationSection />
-              <DressCode />
-              <Gallery />
-              <GiftSection />
+              {visibility.story && <OurStory />}
+              {visibility.details && <WeddingDetails />}
+              {visibility.location && <LocationSection />}
+              {visibility.dressCode && <DressCode />}
+              {visibility.gallery && <Gallery />}
+              {visibility.gift && <GiftSection />}
 
               <SectionWrapper
                 id="rsvp"

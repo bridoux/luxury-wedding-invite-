@@ -82,7 +82,8 @@ export const EDITABLE_SECTIONS = [
   "music",
   "story",
   "gallery",
-  "theme"
+  "theme",
+  "visibility"
 ] as const;
 
 // A section value may be an object (key/value) or an array (story/gallery).

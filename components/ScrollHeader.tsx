@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useWeddingConfig } from "@/components/WeddingConfigProvider";
 import { useT } from "@/components/LanguageProvider";
+import { resolveVisibility } from "@/lib/visibility";
 
 /**
  * Scroll-aware top header (adapted from 21st.dev's WeddingInviteHeader).
@@ -15,7 +16,9 @@ export default function ScrollHeader({
 }: {
   onNavigate: (id: string) => void;
 }) {
-  const { couple } = useWeddingConfig();
+  const config = useWeddingConfig();
+  const { couple } = config;
+  const vis = resolveVisibility((config as { visibility?: unknown }).visibility);
   const t = useT();
   const [visible, setVisible] = useState(false);
 
@@ -51,11 +54,13 @@ export default function ScrollHeader({
 
         {/* Section links (desktop) */}
         <nav className="hidden items-center gap-6 md:flex" aria-label="Sections">
-          {[
-            ["story", t.nav.story],
-            ["details", t.nav.details],
-            ["gallery", t.nav.gallery]
-          ].map(([id, label]) => (
+          {([
+            ["story", t.nav.story, vis.story],
+            ["details", t.nav.details, vis.details],
+            ["gallery", t.nav.gallery, vis.gallery]
+          ] as const)
+            .filter(([, , show]) => show)
+            .map(([id, label]) => (
             <a
               key={id}
               href={`#${id}`}

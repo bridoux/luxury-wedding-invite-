@@ -9,6 +9,7 @@ import AdminSettings from "@/components/AdminSettings";
 import AdminGuests from "@/components/AdminGuests";
 import AdminContent from "@/components/AdminContent";
 import AdminTheme from "@/components/AdminTheme";
+import AdminVisibility from "@/components/AdminVisibility";
 
 /**
  * Admin dashboard.
@@ -66,7 +67,7 @@ function StatCard({ label, value, accent }: { label: string; value: number; acce
 
 export default function AdminDashboard() {
   const weddingConfig = useWeddingConfig();
-  const [tab, setTab] = useState<"overview" | "guests" | "settings" | "content" | "design">("overview");
+  const [tab, setTab] = useState<"overview" | "guests" | "settings" | "content" | "design" | "sections">("overview");
   const [phase, setPhase] = useState<Phase>(isSupabaseConfigured ? "loading" : "ready");
   const [session, setSession] = useState<Session | null>(null);
   const [guests, setGuests] = useState<GuestRow[]>(isSupabaseConfigured ? [] : MOCK_GUESTS);
@@ -207,7 +208,7 @@ export default function AdminDashboard() {
 
       {/* Tabs */}
       <div className="mb-8 flex gap-2 border-b border-champagne/20">
-        {([["overview", "Overview"], ["guests", "Guests"], ["settings", "Wedding Details"], ["content", "Content"], ["design", "Design"]] as const).map(([id, label]) => (
+        {([["overview", "Overview"], ["guests", "Guests"], ["settings", "Wedding Details"], ["content", "Content"], ["design", "Design"], ["sections", "Sections"]] as const).map(([id, label]) => (
           <button
             key={id}
             type="button"
@@ -228,6 +229,8 @@ export default function AdminDashboard() {
       {tab === "settings" && <AdminSettings />}
 
       {tab === "design" && <AdminTheme />}
+
+      {tab === "sections" && <AdminVisibility />}
 
       {tab === "overview" && (
       <>

@@ -10,6 +10,7 @@
  */
 
 import { DEFAULT_THEME } from "@/lib/theme";
+import { DEFAULT_VISIBILITY } from "@/lib/visibility";
 
 export const weddingConfig = {
   // ── Couple ──────────────────────────────────────────────
@@ -205,6 +206,9 @@ export const weddingConfig = {
 
   // ── Theme (admin-editable colors; see lib/theme.ts) ─────
   theme: DEFAULT_THEME,
+
+  // ── Section visibility (admin can hide sections; see lib/visibility.ts) ─
+  visibility: DEFAULT_VISIBILITY,
 
   // ── Misc ────────────────────────────────────────────────
   meta: {
