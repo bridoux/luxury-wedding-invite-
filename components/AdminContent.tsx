@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMergedConfig, saveWeddingSettings, type SettingsOverrides } from "@/lib/settingsService";
+import ImageUploader from "@/components/ImageUploader";
 
 /**
  * Admin "Content" editor — the array-heavy sections: Our Story, Gallery,
@@ -178,7 +179,7 @@ export default function AdminContent() {
   return (
     <div className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="font-sans text-sm text-ink-soft">Edit your story, gallery, dress code and music. Images accept a URL or a /images/&hellip; path.</p>
+        <p className="font-sans text-sm text-ink-soft">Edit your story, gallery, dress code and music. Upload images directly, or paste a URL / /images/&hellip; path.</p>
         <button type="button" onClick={save} disabled={busy} className="btn-gold disabled:opacity-60">{busy ? "Saving…" : "Save Changes"}</button>
       </div>
       {err && <p className="rounded-lg bg-blush-light/60 px-4 py-2 font-sans text-sm text-blush-dark">{err}</p>}
@@ -199,7 +200,7 @@ export default function AdminContent() {
                 <Input label="Date label" value={s.date} onChange={(v) => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, date: v } : x)) })} />
                 <Input label="Date label (FR)" value={s.dateFr} onChange={(v) => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, dateFr: v } : x)) })} />
                 <div className="sm:col-span-2">
-                  <Input label="Image (URL or /images/…)" value={s.image} onChange={(v) => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, image: v } : x)) })} />
+                  <ImageUploader label="Image" folder="story" value={s.image} onChange={(v) => patch({ story: form.story.map((x, xi) => (xi === i ? { ...x, image: v } : x)) })} />
                 </div>
                 <label className="block sm:col-span-2">
                   <span className="field-label">Text</span>
@@ -220,7 +221,7 @@ export default function AdminContent() {
         <div className="space-y-3">
           {form.gallery.map((g, i) => (
             <div key={i} className="grid gap-3 sm:grid-cols-[1.6fr_1fr_1fr_auto] sm:items-end">
-              <Input label="Image (URL or /images/…)" value={g.src} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, src: v } : x)) })} />
+              <ImageUploader label="Image" folder="gallery" value={g.src} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, src: v } : x)) })} />
               <Input label="Caption" value={g.caption} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, caption: v } : x)) })} />
               <Input label="Caption (FR)" value={g.captionFr} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, captionFr: v } : x)) })} />
               <button type="button" onClick={() => patch({ gallery: form.gallery.filter((_, xi) => xi !== i) })} className="rounded-lg border border-blush-dark/40 px-3 py-2 text-blush-dark" aria-label="Remove">✕</button>

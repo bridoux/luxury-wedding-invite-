@@ -3,10 +3,14 @@
  * Strategy:
  *   - Precache the offline page + core assets on install.
  *   - Network-first for navigations, falling back to /offline when offline.
- *   - Cache-first for static assets (images, fonts, etc.).
+ *   - Stale-while-revalidate for static assets (images, fonts, etc.): serve the
+ *     cached copy instantly, then refresh it from the network in the background
+ *     so updated/replaced images appear on the next visit.
  * ────────────────────────────────────────────────────────────── */
 
-const CACHE = "wedding-pwa-v1";
+// Bump this version whenever the caching strategy changes — the activate handler
+// deletes every cache that doesn't match, clearing previously stale assets.
+const CACHE = "wedding-pwa-v2";
 const OFFLINE_URL = "/offline";
 const PRECACHE = [OFFLINE_URL, "/manifest.json"];
 
@@ -39,18 +43,21 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
-  // Static assets → cache first, then network (and cache it).
+  // Static assets → stale-while-revalidate: serve cache immediately, refresh in
+  // the background so changed/replaced files (e.g. photos) update next load.
   const url = new URL(request.url);
   if (url.origin === self.location.origin) {
     event.respondWith(
-      caches.match(request).then(
-        (cached) =>
-          cached ||
-          fetch(request).then((res) => {
-            const copy = res.clone();
-            caches.open(CACHE).then((cache) => cache.put(request, copy)).catch(() => {});
-            return res;
-          })
+      caches.open(CACHE).then((cache) =>
+        cache.match(request).then((cached) => {
+          const network = fetch(request)
+            .then((res) => {
+              if (res && res.ok) cache.put(request, res.clone());
+              return res;
+            })
+            .catch(() => cached);
+          return cached || network;
+        })
       )
     );
   }
