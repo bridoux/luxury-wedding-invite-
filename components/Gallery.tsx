@@ -103,12 +103,25 @@ export default function Gallery() {
                   <span className="script text-5xl">{couple.initials}</span>
                 </span>
 
+                {/* Blurred fill keeps the frame full while the whole photo shows */}
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  src={img.src}
+                  alt=""
+                  aria-hidden="true"
+                  loading={i <= 1 ? "eager" : "lazy"}
+                  className="absolute inset-0 z-[1] h-full w-full scale-110 object-cover opacity-50 blur-2xl"
+                  onError={(e) => {
+                    (e.currentTarget as HTMLImageElement).style.opacity = "0";
+                  }}
+                />
+                {/* Whole photo, uncropped */}
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={img.src}
                   alt={img.caption ?? "Wedding gallery photo"}
                   loading={i <= 1 ? "eager" : "lazy"}
-                  className="relative h-full w-full object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                  className="relative z-[2] h-full w-full object-contain transition-transform duration-700 group-hover:scale-[1.03]"
                   onError={(e) => {
                     (e.currentTarget as HTMLImageElement).style.opacity = "0";
                   }}

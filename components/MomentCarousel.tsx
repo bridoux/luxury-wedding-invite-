@@ -13,16 +13,31 @@ function Framed({ src, label, initials }: { src?: string; label: string; initial
         <span className="font-sans text-[0.55rem] uppercase tracking-[0.3em] text-champagne-dark/70">{label}</span>
       </span>
       {src && (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          src={src}
-          alt={label}
-          loading="lazy"
-          className="relative z-[1] h-full w-full object-cover"
-          onError={(e) => {
-            (e.currentTarget as HTMLImageElement).style.opacity = "0";
-          }}
-        />
+        <>
+          {/* Blurred fill keeps the frame full while the whole photo shows */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            className="absolute inset-0 z-[1] h-full w-full scale-110 object-cover opacity-50 blur-2xl"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.opacity = "0";
+            }}
+          />
+          {/* Whole photo, uncropped */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={src}
+            alt={label}
+            loading="lazy"
+            className="relative z-[2] h-full w-full object-contain"
+            onError={(e) => {
+              (e.currentTarget as HTMLImageElement).style.opacity = "0";
+            }}
+          />
+        </>
       )}
     </div>
   );
