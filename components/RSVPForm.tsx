@@ -5,7 +5,7 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { submitRsvp } from "@/lib/rsvpService";
-import { mealOptions, attendanceOptions } from "@/lib/config";
+import { attendanceOptions } from "@/lib/config";
 import { useLocalizedConfig } from "@/components/WeddingConfigProvider";
 import { useT } from "@/components/LanguageProvider";
 import { getIcsDataUri } from "@/lib/calendar";
@@ -48,7 +48,7 @@ export default function RSVPForm({
       attendanceStatus: "attending",
       guestCount: 1,
       additionalGuestNames: "",
-      mealPreference: mealOptions[0],
+      mealPreference: "",
       dietaryRestrictions: "",
       accommodationNeeded: false,
       message: "",
@@ -264,42 +264,6 @@ export default function RSVPForm({
               </div>
             )}
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              <div>
-                <label htmlFor="mealPreference" className="field-label">
-                  {t.rsvp.mealPreference}
-                </label>
-                <select id="mealPreference" className="input-field" {...register("mealPreference")}>
-                  {mealOptions.map((m) => (
-                    <option key={m} value={m}>
-                      {t.meals[m] ?? m}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div>
-                <label htmlFor="dietaryRestrictions" className="field-label">
-                  {t.rsvp.dietary}
-                </label>
-                <input
-                  id="dietaryRestrictions"
-                  className="input-field"
-                  placeholder="e.g. nut allergy, gluten-free"
-                  {...register("dietaryRestrictions")}
-                />
-              </div>
-            </div>
-
-            <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-champagne/20 bg-ivory-50/60 p-3.5">
-              <input
-                type="checkbox"
-                className="h-5 w-5 accent-champagne"
-                {...register("accommodationNeeded")}
-              />
-              <span className="font-sans text-sm text-ink-soft">
-                {t.rsvp.accommodation}
-              </span>
-            </label>
           </motion.div>
         )}
       </AnimatePresence>
