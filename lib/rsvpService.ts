@@ -45,7 +45,22 @@ export async function submitRsvp(
       return { success: true, mocked: true };
     }
 
-    const { error } = await supabase.from("rsvps").insert(record);
+    // Insert-or-update by guest_code via SECURITY DEFINER RPC, so a guest who
+    // re-submits updates their existing RSVP instead of creating a duplicate.
+    const { error } = await supabase.rpc("submit_rsvp", {
+      p_guest_code: record.guest_code,
+      p_full_name: record.full_name,
+      p_email: record.email,
+      p_phone: record.phone,
+      p_attendance_status: record.attendance_status,
+      p_guest_count: record.guest_count,
+      p_additional_guest_names: record.additional_guest_names,
+      p_meal_preference: record.meal_preference,
+      p_dietary_restrictions: record.dietary_restrictions,
+      p_accommodation_needed: record.accommodation_needed,
+      p_message: record.message,
+      p_consent_updates: record.consent_updates
+    });
 
     if (error) {
       return { success: false, mocked: false, error: error.message };
