@@ -15,9 +15,29 @@
  */
 const PLACEHOLDER_ORIGIN = "https://ruthericvowrenewal.xyz";
 
+/**
+ * Normalize a configured site URL into a valid absolute origin. Tolerates a
+ * missing scheme (prepends https://) and trailing slashes; returns null if it
+ * still can't be parsed — so a malformed env var can never crash `new URL()`
+ * at build time.
+ */
+function normalizeOrigin(value: string): string | null {
+  let v = value.trim().replace(/\/+$/, "");
+  if (!v) return null;
+  if (!/^https?:\/\//i.test(v)) v = `https://${v}`;
+  try {
+    return new URL(v).origin;
+  } catch {
+    return null;
+  }
+}
+
 export function getAppOrigin(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
-  if (configured) return configured.replace(/\/+$/, "");
+  if (configured) {
+    const normalized = normalizeOrigin(configured);
+    if (normalized) return normalized;
+  }
   if (typeof window !== "undefined") return window.location.origin;
   return PLACEHOLDER_ORIGIN;
 }
