@@ -13,7 +13,7 @@
  * only honors a redirect that is on its allow-list (Auth → URL Configuration);
  * otherwise it falls back to the project's Site URL. Keep those in sync with this.
  */
-const PLACEHOLDER_ORIGIN = "https://ruthanderic.wedding";
+const PLACEHOLDER_ORIGIN = "https://ruthericvowrenewal.xyz";
 
 export function getAppOrigin(): string {
   const configured = process.env.NEXT_PUBLIC_SITE_URL;
