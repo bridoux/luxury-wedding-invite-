@@ -163,9 +163,13 @@ export default function OpeningEnvelope({
         transition={{ delay: 0.5, duration: 0.9, ease: EASE }}
         className="mt-6 flex flex-col items-center text-center"
       >
+        {guestName && (
+          <p className="mb-3 max-w-sm font-serif text-base font-light italic text-champagne-dark">
+            {t.greeting.dear} {guestName},
+          </p>
+        )}
         <h1 className="script text-6xl leading-none sm:text-7xl">{couple.combined}</h1>
         <p className="mt-4 max-w-sm font-serif text-lg font-light text-ink-soft sm:text-xl">
-          {guestName ? `${t.greeting.dear} ${guestName}, ` : ""}
           {invitation.intro.toLowerCase()}
         </p>
 
