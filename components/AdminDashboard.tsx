@@ -293,7 +293,9 @@ export default function AdminDashboard() {
       <section className="paper-plain mt-6 overflow-hidden">
         <div className="flex items-center justify-between p-6 pb-3">
           <h2 className="font-serif text-2xl font-light text-ink">Guest List</h2>
-          <span className="font-sans text-xs uppercase tracking-wider text-ink-light">{guests.length} parties</span>
+          <span className="font-sans text-xs uppercase tracking-wider text-ink-light">
+            {guests.length} {guests.length === 1 ? "party" : "parties"} · {guests.reduce((sum, g) => sum + (g.max_guests || 0), 0)} guests
+          </span>
         </div>
         <div className="overflow-x-auto">
           <table className="w-full text-left font-sans text-sm">

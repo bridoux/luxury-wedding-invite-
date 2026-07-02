@@ -382,7 +382,9 @@ export default function AdminGuests() {
       <section className="paper-plain overflow-hidden">
         <div className="flex items-center justify-between p-6 pb-3">
           <h3 className="font-serif text-2xl font-light text-ink">Guests</h3>
-          <span className="font-sans text-xs uppercase tracking-wider text-ink-light">{guests.length} parties</span>
+          <span className="font-sans text-xs uppercase tracking-wider text-ink-light">
+            {guests.length} {guests.length === 1 ? "party" : "parties"} · {guests.reduce((sum, g) => sum + (g.max_guests || 0), 0)} guests
+          </span>
         </div>
 
         {guests.length === 0 ? (
