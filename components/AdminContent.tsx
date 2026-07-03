@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { getMergedConfig, saveWeddingSettings, type SettingsOverrides } from "@/lib/settingsService";
-import ImageUploader from "@/components/ImageUploader";
+import MediaUploader from "@/components/MediaUploader";
 
 /**
  * Admin "Content" editor — the array-heavy sections: Our Story, Gallery,
@@ -217,7 +217,7 @@ export default function AdminContent() {
                     {(s.images.length ? s.images : [""]).map((img, gi) => (
                       <div key={gi} className="flex items-end gap-2">
                         <div className="flex-1">
-                          <ImageUploader
+                          <MediaUploader
                             label={`Photo ${gi + 1}`}
                             folder="story"
                             value={img}
@@ -265,7 +265,7 @@ export default function AdminContent() {
         <div className="space-y-3">
           {form.gallery.map((g, i) => (
             <div key={i} className="grid gap-3 sm:grid-cols-[1.6fr_1fr_1fr_auto] sm:items-end">
-              <ImageUploader label="Image" folder="gallery" value={g.src} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, src: v } : x)) })} />
+              <MediaUploader label="Image" folder="gallery" value={g.src} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, src: v } : x)) })} />
               <Input label="Caption" value={g.caption} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, caption: v } : x)) })} />
               <Input label="Caption (FR)" value={g.captionFr} onChange={(v) => patch({ gallery: form.gallery.map((x, xi) => (xi === i ? { ...x, captionFr: v } : x)) })} />
               <button type="button" onClick={() => patch({ gallery: form.gallery.filter((_, xi) => xi !== i) })} className="rounded-lg border border-blush-dark/40 px-3 py-2 text-blush-dark" aria-label="Remove">✕</button>
@@ -323,7 +323,9 @@ export default function AdminContent() {
             <span className="font-sans text-sm text-ink-soft">Show the background-music toggle</span>
           </label>
           <Input label="Track title" value={form.music.title} onChange={(v) => patchMusic({ title: v })} />
-          <Input label="Audio file (URL or /audio/…)" value={form.music.src} onChange={(v) => patchMusic({ src: v })} />
+          <div className="sm:col-span-2">
+            <MediaUploader label="Audio file" folder="audio" accept="audio" value={form.music.src} onChange={(v) => patchMusic({ src: v })} />
+          </div>
         </div>
       </Group>
 
