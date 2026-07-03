@@ -62,6 +62,10 @@ export default function AdminGuests() {
   const [importing, setImporting] = useState(false);
   const [importMsg, setImportMsg] = useState<string | null>(null);
 
+  // manual RSVP entry (admin-recorded responses)
+  const [rsvpEdits, setRsvpEdits] = useState<Record<string, { status: string; count: number }>>({});
+  const [rsvpSavingId, setRsvpSavingId] = useState<string | null>(null);
+
   const load = useCallback(async () => {
     const supabase = getSupabase();
     if (!supabase) {
@@ -137,6 +141,52 @@ export default function AdminGuests() {
     } catch {
       /* ignore */
     }
+  };
+
+  // ── Manual RSVP (record a response on a guest's behalf) ──────
+  const REAL_STATUSES = ["attending", "not_attending", "maybe"];
+  const baseRsvp = (g: GuestRow) => ({
+    status: REAL_STATUSES.includes(g.rsvp_status) ? g.rsvp_status : "",
+    count: g.max_guests
+  });
+  const rsvpFor = (g: GuestRow) => rsvpEdits[g.id] ?? baseRsvp(g);
+
+  const saveManualRsvp = async (g: GuestRow) => {
+    const supabase = getSupabase();
+    if (!supabase) return;
+    const { status, count } = rsvpFor(g);
+    if (!status) {
+      setErr("Choose an attendance status first.");
+      return;
+    }
+    setErr(null);
+    setRsvpSavingId(g.id);
+    // Same upsert RPC the public form uses → updates (not duplicates) and syncs status.
+    const { error } = await supabase.rpc("submit_rsvp", {
+      p_guest_code: g.guest_code,
+      p_full_name: g.party_label ?? g.full_name,
+      p_email: g.email ?? null,
+      p_phone: g.phone ?? null,
+      p_attendance_status: status,
+      p_guest_count: Math.max(0, Math.min(20, count || 0)),
+      p_additional_guest_names: null,
+      p_meal_preference: null,
+      p_dietary_restrictions: null,
+      p_accommodation_needed: false,
+      p_message: null,
+      p_consent_updates: false
+    });
+    if (error) {
+      setErr(error.message);
+    } else {
+      setRsvpEdits((m) => {
+        const next = { ...m };
+        delete next[g.id];
+        return next;
+      });
+      await load();
+    }
+    setRsvpSavingId(null);
   };
 
   const handleFile = async (file: File) => {
@@ -392,52 +442,91 @@ export default function AdminGuests() {
         ) : (
           <div className="divide-y divide-champagne/10">
             {guests.map((g) => (
-              <div key={g.id} className="grid gap-3 p-5 sm:grid-cols-[1.4fr_1fr_auto_auto] sm:items-end">
-                <label className="block">
-                  <span className="field-label">Name</span>
-                  <input
-                    className="input-field"
-                    defaultValue={g.party_label ?? g.full_name}
-                    onBlur={(e) => {
-                      const v = e.target.value.trim();
-                      if (v && v !== (g.party_label ?? g.full_name)) updateGuest(g.id, { party_label: v, full_name: v });
-                    }}
-                  />
-                </label>
-                <label className="block">
-                  <span className="field-label">Max guests</span>
-                  <input
-                    type="number"
-                    min={1}
-                    max={20}
-                    className="input-field"
-                    defaultValue={g.max_guests}
-                    onBlur={(e) => {
-                      const v = Number(e.target.value) || 1;
-                      if (v !== g.max_guests) updateGuest(g.id, { max_guests: v });
-                    }}
-                  />
-                </label>
-                <div className="flex flex-col gap-1">
-                  <span className="field-label">Status</span>
+              <div key={g.id} className="space-y-3 p-5">
+                <div className="grid gap-3 sm:grid-cols-[1.5fr_0.7fr_auto] sm:items-end">
+                  <label className="block">
+                    <span className="field-label">Name</span>
+                    <input
+                      className="input-field"
+                      defaultValue={g.party_label ?? g.full_name}
+                      onBlur={(e) => {
+                        const v = e.target.value.trim();
+                        if (v && v !== (g.party_label ?? g.full_name)) updateGuest(g.id, { party_label: v, full_name: v });
+                      }}
+                    />
+                  </label>
+                  <label className="block">
+                    <span className="field-label">Max guests</span>
+                    <input
+                      type="number"
+                      min={1}
+                      max={20}
+                      className="input-field"
+                      defaultValue={g.max_guests}
+                      onBlur={(e) => {
+                        const v = Number(e.target.value) || 1;
+                        if (v !== g.max_guests) updateGuest(g.id, { max_guests: v });
+                      }}
+                    />
+                  </label>
+                  <div className="flex items-center gap-2 sm:justify-end">
+                    <button type="button" onClick={() => copyLink(g.guest_code)} className="btn-outline px-4 py-2 text-xs">
+                      {copied === g.guest_code ? "Copied!" : "Copy link"}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => deleteGuest(g.id, g.party_label ?? g.full_name)}
+                      aria-label="Delete guest"
+                      className="rounded-full border border-blush-dark/40 px-3 py-2 font-sans text-xs text-blush-dark transition-colors hover:bg-blush-light/40"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                </div>
+
+                {/* Manual RSVP */}
+                <div className="flex flex-wrap items-end gap-2 rounded-lg bg-ivory-50/50 p-3">
+                  <label className="block">
+                    <span className="field-label">RSVP (manual)</span>
+                    <select
+                      className="input-field"
+                      value={rsvpFor(g).status}
+                      onChange={(e) =>
+                        setRsvpEdits((m) => ({ ...m, [g.id]: { ...(m[g.id] ?? baseRsvp(g)), status: e.target.value } }))
+                      }
+                    >
+                      <option value="">Pending</option>
+                      <option value="attending">Attending</option>
+                      <option value="not_attending">Can&apos;t attend</option>
+                      <option value="maybe">Maybe</option>
+                    </select>
+                  </label>
+                  <label className="block w-24">
+                    <span className="field-label">Headcount</span>
+                    <input
+                      type="number"
+                      min={0}
+                      max={20}
+                      className="input-field"
+                      value={rsvpFor(g).count}
+                      onChange={(e) =>
+                        setRsvpEdits((m) => ({ ...m, [g.id]: { ...(m[g.id] ?? baseRsvp(g)), count: Number(e.target.value) || 0 } }))
+                      }
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => saveManualRsvp(g)}
+                    disabled={rsvpSavingId === g.id || !rsvpFor(g).status}
+                    className="btn-gold px-5 py-2 text-xs disabled:opacity-60"
+                  >
+                    {rsvpSavingId === g.id ? "Saving…" : "Save RSVP"}
+                  </button>
                   <span className="rounded-full bg-champagne/15 px-3 py-1.5 text-center font-sans text-xs capitalize text-champagne-dark">
                     {g.rsvp_status.replace("_", " ")}
                   </span>
+                  <span className="ml-auto self-center font-mono text-xs text-ink-light">/invite/{g.guest_code}</span>
                 </div>
-                <div className="flex items-center gap-2">
-                  <button type="button" onClick={() => copyLink(g.guest_code)} className="btn-outline px-4 py-2 text-xs">
-                    {copied === g.guest_code ? "Copied!" : "Copy link"}
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => deleteGuest(g.id, g.party_label ?? g.full_name)}
-                    aria-label="Delete guest"
-                    className="rounded-full border border-blush-dark/40 px-3 py-2 font-sans text-xs text-blush-dark transition-colors hover:bg-blush-light/40"
-                  >
-                    ✕
-                  </button>
-                </div>
-                <p className="font-mono text-xs text-ink-light sm:col-span-4">/invite/{g.guest_code}</p>
               </div>
             ))}
           </div>
