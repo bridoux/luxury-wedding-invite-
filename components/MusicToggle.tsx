@@ -15,19 +15,43 @@ export default function MusicToggle() {
   const [available, setAvailable] = useState(true);
 
   useEffect(() => {
-    audioRef.current = new Audio(weddingConfig.music.src);
-    audioRef.current.loop = true;
-    audioRef.current.volume = 0.4;
+    if (!weddingConfig.music.enabled) return;
+    const audio = new Audio(weddingConfig.music.src);
+    audio.loop = true;
+    audio.volume = 0.4;
+    audio.preload = "auto";
+    audioRef.current = audio;
 
-    const audio = audioRef.current;
     const onError = () => setAvailable(false);
     audio.addEventListener("error", onError);
 
+    // Browsers block autoplay with sound, so start on the guest's first
+    // interaction (e.g. tapping "Open Invitation"). One-shot: stops listening
+    // once playback begins or the guest toggles manually.
+    let done = false;
+    const startOnGesture = () => {
+      if (done || audio.paused === false) return;
+      audio
+        .play()
+        .then(() => {
+          done = true;
+          setPlaying(true);
+          removeListeners();
+        })
+        .catch(() => {
+          /* not allowed yet — wait for another gesture */
+        });
+    };
+    const events = ["pointerdown", "touchstart", "keydown"] as const;
+    const removeListeners = () => events.forEach((e) => document.removeEventListener(e, startOnGesture));
+    events.forEach((e) => document.addEventListener(e, startOnGesture, { passive: true }));
+
     return () => {
+      removeListeners();
       audio.removeEventListener("error", onError);
       audio.pause();
     };
-  }, [weddingConfig.music.src]);
+  }, [weddingConfig.music.src, weddingConfig.music.enabled]);
 
   const toggle = async () => {
     const audio = audioRef.current;
